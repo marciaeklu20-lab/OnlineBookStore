@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Book, Genre, BookWithAuthor } from "@/lib/types";
 
-// Server-side client (uses service role for server components)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -78,7 +77,6 @@ export async function getBooks({
   }
 
   if (genre) {
-    // filter via book_genres junction
     const { data: genreData } = await supabase
       .from("genres")
       .select("id")
@@ -133,4 +131,112 @@ export async function getBookBySlug(slug: string): Promise<BookWithAuthor | null
 
   if (error) return null;
   return data as BookWithAuthor;
+}
+
+// ─────────────────────────────────────────────────────────────
+// RECOMMENDATIONS
+//
+// Logic (in priority order):
+//  1. User has wishlist entries → find genres of those books →
+//     return other books in same genres, excluding already-wishlisted
+//  2. User has reading progress → same genre approach
+//  3. User has past orders → same genre approach
+//  4. Fallback → featured + bestsellers (for new / logged-out users)
+// ─────────────────────────────────────────────────────────────
+
+type RecommendationResult = {
+  books: BookWithAuthor[];
+  reason: string; // shown as section subtitle
+};
+
+export async function getRecommendations(
+  userId: string | null,
+  limit = 8
+): Promise<RecommendationResult> {
+  // ── No user → return featured/bestsellers ──────────────────
+  if (!userId) {
+    const books = await getFeaturedBooks(limit);
+    return { books, reason: "Handpicked favourites" };
+  }
+
+  // ── Step 1: collect genre IDs the user is interested in ────
+  // Gather book IDs the user already engaged with (wishlist + progress + orders)
+  const [wishlistRes, progressRes, ordersRes] = await Promise.all([
+    supabase
+      .from("wishlists")
+      .select("book_id")
+      .eq("user_id", userId),
+    supabase
+      .from("reading_progress")
+      .select("book_id")
+      .eq("user_id", userId),
+    supabase
+      .from("order_line_items")
+      .select("book_id, orders!inner(user_id)")
+      .eq("orders.user_id", userId),
+  ]);
+
+  const engagedBookIds = Array.from(
+    new Set([
+      ...(wishlistRes.data ?? []).map((r: { book_id: string }) => r.book_id),
+      ...(progressRes.data ?? []).map((r: { book_id: string }) => r.book_id),
+      ...(ordersRes.data ?? []).map((r: { book_id: string }) => r.book_id),
+    ])
+  );
+
+  // No engagement yet → trending fallback
+  if (engagedBookIds.length === 0) {
+    const books = await getBestsellers(limit);
+    return { books, reason: "Trending right now" };
+  }
+
+  // ── Step 2: get genres of engaged books ────────────────────
+  const { data: genreLinks } = await supabase
+    .from("book_genres")
+    .select("genre_id")
+    .in("book_id", engagedBookIds);
+
+  const genreIds = Array.from(
+    new Set((genreLinks ?? []).map((r: { genre_id: string }) => r.genre_id))
+  );
+
+  if (genreIds.length === 0) {
+    const books = await getBestsellers(limit);
+    return { books, reason: "Popular picks" };
+  }
+
+  // ── Step 3: find books in those genres, exclude engaged ────
+  const { data: candidateLinks } = await supabase
+    .from("book_genres")
+    .select("book_id")
+    .in("genre_id", genreIds)
+    .not("book_id", "in", `(${engagedBookIds.join(",")})`);
+
+  const candidateIds = Array.from(
+    new Set((candidateLinks ?? []).map((r: { book_id: string }) => r.book_id))
+  );
+
+  if (candidateIds.length === 0) {
+    const books = await getBestsellers(limit);
+    return { books, reason: "Popular picks" };
+  }
+
+  // ── Step 4: fetch those books, rank by avg_rating ──────────
+  const { data, error } = await supabase
+    .from("books")
+    .select("*, authors(id, name)")
+    .in("id", candidateIds)
+    .order("avg_rating", { ascending: false })
+    .order("sales_count", { ascending: false })
+    .limit(limit);
+
+  if (error || !data?.length) {
+    const books = await getBestsellers(limit);
+    return { books, reason: "Popular picks" };
+  }
+
+  return {
+    books: data as BookWithAuthor[],
+    reason: "Based on your reading interests",
+  };
 }

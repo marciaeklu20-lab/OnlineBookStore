@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, TrendingUp, Tag, BookMarked } from "lucide-react";
 import { getBestsellers, getGenres } from "@/lib/supabase/queries";
 import BookCard from "@/components/books/BookCard";
+import RecommendedBooks from "@/components/books/RecommendedBooks";
 import type { Genre } from "@/lib/types";
 
 const GENRE_COLORS: Record<string, string> = {
@@ -107,6 +108,9 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* Personalised Recommendations */}
+      <RecommendedBooks />
 
       {/* Bestsellers */}
       {bestsellers.length > 0 && (
