@@ -2,18 +2,22 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   BookOpen, LayoutDashboard, Library, Users, Tag,
-  Settings, LogOut, ChevronRight,
+  Settings, LogOut, ChevronRight, HeartHandshake,
+  BarChart2, ShoppingCart,
 } from "lucide-react";
 import { getServerUser } from "@/lib/supabase/server";
 import { adminSupabase } from "@/lib/supabase/admin";
 import type { ReactNode } from "react";
 
 const NAV = [
-  { href: "/admin",          label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/admin/books",    label: "Books",       icon: Library },
-  { href: "/admin/authors",  label: "Authors",     icon: Users },
-  { href: "/admin/genres",   label: "Genres",      icon: Tag },
-  { href: "/admin/settings", label: "Settings",    icon: Settings },
+  { href: "/admin",           label: "Dashboard",  icon: LayoutDashboard },
+  { href: "/admin/books",     label: "Books",       icon: Library },
+  { href: "/admin/authors",   label: "Authors",     icon: Users },
+  { href: "/admin/genres",    label: "Genres",      icon: Tag },
+  { href: "/admin/crm",       label: "CRM",         icon: HeartHandshake },
+  { href: "/admin/finance",   label: "Finance",     icon: BarChart2 },
+  { href: "/admin/orders",    label: "Orders",      icon: ShoppingCart },
+  { href: "/admin/settings",  label: "Settings",    icon: Settings },
 ];
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
