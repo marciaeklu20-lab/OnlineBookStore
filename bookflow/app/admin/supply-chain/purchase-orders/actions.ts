@@ -64,17 +64,20 @@ export async function updatePOStatus(formData: FormData) {
       .eq("purchase_order_id", poId);
 
     for (const item of items ?? []) {
-      await adminSupabase.rpc("increment_inventory", {
+      const { error: rpcError } = await adminSupabase.rpc("increment_inventory", {
         p_book_id: item.book_id,
         p_format:  item.format.toLowerCase(),
         p_qty:     item.quantity_ordered,
-      }).catch(() => {
-        // Fallback: upsert inventory record
-        adminSupabase
-          .from("inventory")
-          .upsert({ book_id: item.book_id, format: item.format.toLowerCase(), stock_qty: item.quantity_ordered, last_restocked_at: new Date().toISOString() }, { onConflict: "book_id,format", ignoreDuplicates: false })
-          .then(() => {});
       });
+      if (rpcError) {
+        // Fallback: upsert inventory record directly
+        await adminSupabase
+          .from("inventory")
+          .upsert(
+            { book_id: item.book_id, format: item.format.toLowerCase(), stock_qty: item.quantity_ordered, last_restocked_at: new Date().toISOString() },
+            { onConflict: "book_id,format" }
+          );
+      }
     }
   }
 

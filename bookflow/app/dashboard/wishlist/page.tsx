@@ -54,7 +54,16 @@ export default function WishlistPage() {
   function addToCart(item: WishlistItem) {
     const book = item.books;
     const price = book.price_paperback ?? book.price_digital ?? 0;
-    addItem({ id: book.id, title: book.title, price, format: "Paperback", quantity: 1 });
+    addItem({
+      id: book.id,
+      title: book.title,
+      author: book.authors?.name ?? "",
+      slug: book.slug,
+      cover_image_url: book.cover_image_url,
+      price,
+      format: "Paperback",
+      quantity: 1,
+    });
   }
 
   if (loading) {

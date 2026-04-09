@@ -62,7 +62,7 @@ export default async function SupplyChainPage() {
           <div className="flex-1">
             <p className="font-semibold text-amber-800 text-sm">{lowStock.length} items need restocking</p>
             <p className="text-xs text-amber-700 mt-1">
-              {lowStock.slice(0, 4).map((i) => (i.books as { title: string }).title).join(", ")}
+              {lowStock.slice(0, 4).map((i) => (i.books as unknown as { title: string }).title).join(", ")}
               {lowStock.length > 4 ? ` +${lowStock.length - 4} more` : ""}
             </p>
           </div>

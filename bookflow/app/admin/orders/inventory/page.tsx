@@ -40,7 +40,7 @@ export default async function InventoryPage() {
           <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-red-800 text-sm">{outOfStock.length} item{outOfStock.length > 1 ? "s" : ""} out of stock</p>
-            <p className="text-xs text-red-600 mt-0.5">{outOfStock.map((i) => `${(i.books as { title: string }).title} (${i.format})`).join(", ")}</p>
+            <p className="text-xs text-red-600 mt-0.5">{outOfStock.map((i) => `${(i.books as unknown as { title: string }).title} (${i.format})`).join(", ")}</p>
           </div>
         </div>
       )}
@@ -49,7 +49,7 @@ export default async function InventoryPage() {
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-amber-800 text-sm">{lowStock.length} item{lowStock.length > 1 ? "s" : ""} below reorder level</p>
-            <p className="text-xs text-amber-600 mt-0.5">{lowStock.map((i) => `${(i.books as { title: string }).title} (${i.format})`).slice(0, 5).join(", ")}</p>
+            <p className="text-xs text-amber-600 mt-0.5">{lowStock.map((i) => `${(i.books as unknown as { title: string }).title} (${i.format})`).slice(0, 5).join(", ")}</p>
           </div>
         </div>
       )}
