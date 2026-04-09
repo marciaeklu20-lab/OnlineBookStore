@@ -1,67 +1,46 @@
 import Link from "next/link";
-import { ArrowRight, Star, TrendingUp, Tag, BookMarked } from "lucide-react";
+import { ArrowRight, TrendingUp, Tag, BookMarked } from "lucide-react";
+import { getBestsellers, getGenres } from "@/lib/supabase/queries";
+import BookCard from "@/components/books/BookCard";
+import type { Genre } from "@/lib/types";
 
-const categories = [
-  { name: "Fiction", emoji: "📖", href: "/shop?category=fiction", color: "bg-blue-50 hover:bg-blue-100 text-blue-700" },
-  { name: "Non-Fiction", emoji: "🧠", href: "/shop?category=non-fiction", color: "bg-green-50 hover:bg-green-100 text-green-700" },
-  { name: "Biography", emoji: "👤", href: "/shop?category=biography", color: "bg-purple-50 hover:bg-purple-100 text-purple-700" },
-  { name: "Business", emoji: "💼", href: "/shop?category=business", color: "bg-yellow-50 hover:bg-yellow-100 text-yellow-700" },
-  { name: "Science", emoji: "🔬", href: "/shop?category=science", color: "bg-cyan-50 hover:bg-cyan-100 text-cyan-700" },
-  { name: "Self-Help", emoji: "🌱", href: "/shop?category=self-help", color: "bg-emerald-50 hover:bg-emerald-100 text-emerald-700" },
-  { name: "Children", emoji: "🎨", href: "/shop?category=children", color: "bg-pink-50 hover:bg-pink-100 text-pink-700" },
-  { name: "Religion", emoji: "✝️", href: "/shop?category=religion", color: "bg-amber-50 hover:bg-amber-100 text-amber-700" },
-  { name: "Education", emoji: "🎓", href: "/shop?category=education", color: "bg-indigo-50 hover:bg-indigo-100 text-indigo-700" },
-  { name: "Technology", emoji: "💻", href: "/shop?category=technology", color: "bg-slate-50 hover:bg-slate-100 text-slate-700" },
-];
+const GENRE_COLORS: Record<string, string> = {
+  fiction:      "bg-blue-50 hover:bg-blue-100 text-blue-700",
+  "non-fiction":"bg-green-50 hover:bg-green-100 text-green-700",
+  biography:    "bg-purple-50 hover:bg-purple-100 text-purple-700",
+  business:     "bg-yellow-50 hover:bg-yellow-100 text-yellow-700",
+  science:      "bg-cyan-50 hover:bg-cyan-100 text-cyan-700",
+  "self-help":  "bg-emerald-50 hover:bg-emerald-100 text-emerald-700",
+  children:     "bg-pink-50 hover:bg-pink-100 text-pink-700",
+  religion:     "bg-amber-50 hover:bg-amber-100 text-amber-700",
+  education:    "bg-indigo-50 hover:bg-indigo-100 text-indigo-700",
+  technology:   "bg-slate-50 hover:bg-slate-100 text-slate-700",
+  "young-adult":"bg-rose-50 hover:bg-rose-100 text-rose-700",
+  history:      "bg-stone-50 hover:bg-stone-100 text-stone-700",
+  romance:      "bg-red-50 hover:bg-red-100 text-red-700",
+  thriller:     "bg-gray-100 hover:bg-gray-200 text-gray-700",
+  philosophy:   "bg-violet-50 hover:bg-violet-100 text-violet-700",
+};
 
-const featuredBooks = [
-  { id: 1, title: "Atomic Habits", author: "James Clear", price: 45, rating: 4.9, reviews: 2341, badge: "Bestseller", cover: "bg-orange-200" },
-  { id: 2, title: "The Alchemist", author: "Paulo Coelho", price: 38, rating: 4.8, reviews: 1892, badge: "Classic", cover: "bg-amber-200" },
-  { id: 3, title: "Sapiens", author: "Yuval Noah Harari", price: 52, rating: 4.7, reviews: 3102, badge: "Popular", cover: "bg-blue-200" },
-  { id: 4, title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", price: 42, rating: 4.6, reviews: 1567, badge: "Bestseller", cover: "bg-green-200" },
-  { id: 5, title: "The Power of Now", author: "Eckhart Tolle", price: 36, rating: 4.7, reviews: 1234, badge: null, cover: "bg-purple-200" },
-  { id: 6, title: "Think and Grow Rich", author: "Napoleon Hill", price: 30, rating: 4.5, reviews: 2876, badge: "Sale", cover: "bg-red-200" },
-  { id: 7, title: "1984", author: "George Orwell", price: 28, rating: 4.9, reviews: 4120, badge: "Classic", cover: "bg-gray-300" },
-  { id: 8, title: "Deep Work", author: "Cal Newport", price: 44, rating: 4.6, reviews: 987, badge: null, cover: "bg-teal-200" },
-];
-
-function BookCard({ book }: { book: typeof featuredBooks[0] }) {
+function GenreCard({ genre }: { genre: Genre }) {
+  const color = GENRE_COLORS[genre.slug] ?? "bg-neutral-50 hover:bg-neutral-100 text-neutral-700";
   return (
-    <Link href={`/books/${book.id}`} className="group flex flex-col">
-      <div className={`relative ${book.cover} rounded-lg aspect-[2/3] w-full flex items-end justify-center overflow-hidden shadow-sm group-hover:shadow-md transition-shadow`}>
-        {book.badge && (
-          <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-            book.badge === "Sale" ? "bg-red-500 text-white" :
-            book.badge === "Bestseller" ? "bg-brand-500 text-white" :
-            "bg-neutral-800 text-white"
-          }`}>
-            {book.badge}
-          </span>
-        )}
-        <div className="w-full bg-black/10 px-3 py-2">
-          <p className="text-xs font-semibold text-neutral-800 truncate">{book.title}</p>
-        </div>
-      </div>
-      <div className="mt-2 flex-1">
-        <p className="text-sm font-semibold text-neutral-900 leading-tight line-clamp-1 group-hover:text-brand-600 transition-colors">
-          {book.title}
-        </p>
-        <p className="text-xs text-neutral-500 mt-0.5">{book.author}</p>
-        <div className="flex items-center gap-1 mt-1">
-          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-          <span className="text-xs font-medium text-neutral-700">{book.rating}</span>
-          <span className="text-xs text-neutral-400">({book.reviews.toLocaleString()})</span>
-        </div>
-        <p className="text-sm font-bold text-neutral-900 mt-1">GHS {book.price}</p>
-      </div>
-      <button type="button" className="mt-2 w-full bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold py-2 rounded-lg transition-colors">
-        Add to Cart
-      </button>
+    <Link
+      href={`/shop?category=${genre.slug}`}
+      className={`${color} rounded-xl p-4 flex flex-col items-center gap-2 transition-colors`}
+    >
+      <span className="text-2xl">{genre.emoji ?? "📚"}</span>
+      <span className="text-sm font-semibold text-center">{genre.name}</span>
     </Link>
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [bestsellers, genres] = await Promise.all([
+    getBestsellers(8),
+    getGenres(),
+  ]);
+
   return (
     <div>
       {/* Hero */}
@@ -110,52 +89,49 @@ export default function HomePage() {
       </section>
 
       {/* Categories */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-neutral-900">Browse by Category</h2>
-            <p className="text-sm text-neutral-500 mt-1">Find exactly what you are looking for</p>
-          </div>
-          <Link href="/shop" className="text-sm text-brand-500 hover:text-brand-600 font-medium flex items-center gap-1">
-            View all <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {categories.map((cat) => (
-            <Link
-              key={cat.name}
-              href={cat.href}
-              className={`${cat.color} rounded-xl p-4 flex flex-col items-center gap-2 transition-colors cursor-pointer`}
-            >
-              <span className="text-2xl">{cat.emoji}</span>
-              <span className="text-sm font-semibold text-center">{cat.name}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Bestsellers */}
-      <section className="bg-neutral-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {genres.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-brand-500" />
-              <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Bestselling Books</h2>
-                <p className="text-sm text-neutral-500 mt-0.5">Most loved by our readers</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold text-neutral-900">Browse by Category</h2>
+              <p className="text-sm text-neutral-500 mt-1">Find exactly what you are looking for</p>
             </div>
-            <Link href="/shop?sort=bestselling" className="text-sm text-brand-500 hover:text-brand-600 font-medium flex items-center gap-1">
+            <Link href="/shop" className="text-sm text-brand-500 hover:text-brand-600 font-medium flex items-center gap-1">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-            {featuredBooks.map((book) => (
-              <BookCard key={book.id} book={book} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {genres.slice(0, 10).map((genre) => (
+              <GenreCard key={genre.id} genre={genre} />
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Bestsellers */}
+      {bestsellers.length > 0 && (
+        <section className="bg-neutral-50 py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-brand-500" />
+                <div>
+                  <h2 className="text-2xl font-bold text-neutral-900">Bestselling Books</h2>
+                  <p className="text-sm text-neutral-500 mt-0.5">Most loved by our readers</p>
+                </div>
+              </div>
+              <Link href="/shop?sort=bestselling" className="text-sm text-brand-500 hover:text-brand-600 font-medium flex items-center gap-1">
+                View all <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+              {bestsellers.map((book) => (
+                <BookCard key={book.id} book={book} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Newsletter Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
