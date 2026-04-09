@@ -90,6 +90,15 @@ export default async function ConfirmationPage({ params }: Props) {
               {order.shipping_cost === 0 ? "FREE" : `GHS ${order.shipping_cost.toFixed(2)}`}
             </span>
           </div>
+          {order.tax_amount > 0 && (
+            <div className="flex justify-between text-neutral-600">
+              <span className="flex flex-col">
+                <span>Tax (17.5%)</span>
+                <span className="text-xs text-neutral-400">VAT + NHIL + GETFund</span>
+              </span>
+              <span>GHS {Number(order.tax_amount).toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between font-bold text-neutral-900 text-base border-t border-neutral-200 pt-2">
             <span>Total Paid</span><span>GHS {order.total_amount.toFixed(2)}</span>
           </div>

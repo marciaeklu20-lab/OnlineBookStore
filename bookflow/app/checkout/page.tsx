@@ -31,7 +31,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
 
   const shipping = total >= 200 ? 0 : 20;
-  const grandTotal = total + shipping;
+  const taxAmount = Math.round(total * 0.175 * 100) / 100; // VAT 12.5% + NHIL 2.5% + GETFund 2.5%
+  const grandTotal = total + shipping + taxAmount;
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", phone: "",
@@ -401,6 +402,13 @@ export default function CheckoutPage() {
                 <span className={shipping === 0 ? "text-green-600 font-medium" : ""}>
                   {shipping === 0 ? "FREE" : `GHS ${shipping.toFixed(2)}`}
                 </span>
+              </div>
+              <div className="flex justify-between text-neutral-600">
+                <span className="flex flex-col">
+                  <span>Tax (17.5%)</span>
+                  <span className="text-xs text-neutral-400">VAT + NHIL + GETFund</span>
+                </span>
+                <span>GHS {taxAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-neutral-900 text-base border-t border-neutral-100 pt-2">
                 <span>Total</span><span>GHS {grandTotal.toFixed(2)}</span>

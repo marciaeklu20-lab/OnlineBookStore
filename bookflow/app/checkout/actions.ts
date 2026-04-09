@@ -33,12 +33,18 @@ function generateOrderNumber() {
   return `BF-${ymd}-${rand}`;
 }
 
+// Ghana tax rates (GRA)
+const TAX = { vat: 0.125, nhil: 0.025, getfund: 0.025 };
+const TAX_RATE = TAX.vat + TAX.nhil + TAX.getfund; // 0.175
+
 export async function createOrder(payload: CheckoutPayload): Promise<{ orderId: string; orderNumber: string }> {
   const user = await getServerUser();
 
   const subtotal = payload.items.reduce((acc, i) => acc + i.price * i.quantity, 0);
   const shippingCost = subtotal >= 200 ? 0 : 20;
-  const total = subtotal + shippingCost;
+  // Tax applied on subtotal (pre-shipping), rounded to 2dp
+  const taxAmount = Math.round(subtotal * TAX_RATE * 100) / 100;
+  const total = subtotal + shippingCost + taxAmount;
   const orderNumber = generateOrderNumber();
 
   // If user is logged in, use their profile; otherwise use guest flow
@@ -74,6 +80,9 @@ export async function createOrder(payload: CheckoutPayload): Promise<{ orderId: 
       payment_status: "completed",
       subtotal,
       shipping_cost: shippingCost,
+      tax_amount: taxAmount,
+      tax_rate: TAX_RATE,
+      tax_breakdown: { vat: TAX.vat, nhil: TAX.nhil, getfund: TAX.getfund, total: TAX_RATE },
       total_amount: total,
       currency: "GHS",
       payment_method: payload.paymentMethod,
