@@ -162,6 +162,140 @@ export async function deleteBook(id: string) {
   revalidatePath("/shop");
 }
 
+// ── Genres ───────────────────────────────────────────────────
+
+export async function createGenre(formData: FormData) {
+  await requireAdmin();
+
+  const name = formData.get("name") as string;
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+  const { error } = await adminSupabase.from("genres").insert({
+    name,
+    slug,
+    description:   formData.get("description") as string || null,
+    emoji:         formData.get("emoji") as string || null,
+    display_order: parseInt(formData.get("display_order") as string) || 0,
+  });
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/genres");
+  revalidatePath("/shop");
+  redirect("/admin/genres");
+}
+
+export async function updateGenre(id: string, formData: FormData) {
+  await requireAdmin();
+
+  const name = formData.get("name") as string;
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+  const { error } = await adminSupabase.from("genres").update({
+    name,
+    slug,
+    description:   formData.get("description") as string || null,
+    emoji:         formData.get("emoji") as string || null,
+    display_order: parseInt(formData.get("display_order") as string) || 0,
+  }).eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/genres");
+  revalidatePath("/shop");
+  redirect("/admin/genres");
+}
+
+export async function deleteGenre(id: string) {
+  await requireAdmin();
+  // book_genres rows cascade via FK; just delete the genre
+  await adminSupabase.from("genres").delete().eq("id", id);
+  revalidatePath("/admin/genres");
+  revalidatePath("/shop");
+}
+
+// ── Publishers ───────────────────────────────────────────────
+
+export async function createPublisher(formData: FormData) {
+  await requireAdmin();
+
+  const { error } = await adminSupabase.from("publishers").insert({
+    name:        formData.get("name") as string,
+    website_url: formData.get("website_url") as string || null,
+    country:     formData.get("country") as string || null,
+  });
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/publishers");
+  redirect("/admin/publishers");
+}
+
+export async function updatePublisher(id: string, formData: FormData) {
+  await requireAdmin();
+
+  const { error } = await adminSupabase.from("publishers").update({
+    name:        formData.get("name") as string,
+    website_url: formData.get("website_url") as string || null,
+    country:     formData.get("country") as string || null,
+  }).eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/publishers");
+  redirect("/admin/publishers");
+}
+
+export async function deletePublisher(id: string) {
+  await requireAdmin();
+  await adminSupabase.from("publishers").delete().eq("id", id);
+  revalidatePath("/admin/publishers");
+}
+
+// ── Settings ─────────────────────────────────────────────────
+
+export async function saveStoreSettings(formData: FormData) {
+  await requireAdmin();
+
+  const { error } = await adminSupabase.from("store_settings").upsert({
+    id: 1,
+    store_name:               formData.get("store_name") as string,
+    store_tagline:            formData.get("store_tagline") as string || null,
+    store_email:              formData.get("store_email") as string || null,
+    store_phone:              formData.get("store_phone") as string || null,
+    store_address:            formData.get("store_address") as string || null,
+    store_city:               formData.get("store_city") as string || null,
+    store_country:            formData.get("store_country") as string || null,
+    currency:                 formData.get("currency") as string || "GHS",
+    tax_enabled:              formData.get("tax_enabled") === "on",
+    tax_rate:                 parseFloat(formData.get("tax_rate") as string) / 100 || 0.175,
+    tax_label:                formData.get("tax_label") as string || null,
+    free_shipping_threshold:  parseFloat(formData.get("free_shipping_threshold") as string) || 200,
+    flat_shipping_rate:       parseFloat(formData.get("flat_shipping_rate") as string) || 15,
+    maintenance_mode:         formData.get("maintenance_mode") === "on",
+    updated_at:               new Date().toISOString(),
+  });
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/settings");
+  revalidatePath("/");
+}
+
+export async function updateAdminProfile(formData: FormData) {
+  const user = await requireAdmin();
+
+  const { error } = await adminSupabase.from("profiles").update({
+    first_name: formData.get("first_name") as string || null,
+    last_name:  formData.get("last_name") as string || null,
+  }).eq("id", user.id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin");
+}
+
 // ── Authors ──────────────────────────────────────────────────
 
 export async function createAuthor(formData: FormData) {
@@ -173,6 +307,7 @@ export async function createAuthor(formData: FormData) {
     nationality: formData.get("nationality") as string || null,
     photo_url:   formData.get("photo_url") as string || null,
     website_url: formData.get("website_url") as string || null,
+    birth_date:  formData.get("birth_date") as string || null,
   });
 
   if (error) throw new Error(error.message);
@@ -189,6 +324,7 @@ export async function updateAuthor(id: string, formData: FormData) {
     nationality: formData.get("nationality") as string || null,
     photo_url:   formData.get("photo_url") as string || null,
     website_url: formData.get("website_url") as string || null,
+    birth_date:  formData.get("birth_date") as string || null,
   }).eq("id", id);
 
   if (error) throw new Error(error.message);

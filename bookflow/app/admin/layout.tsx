@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import {
   BookOpen, LayoutDashboard, Library, Users, Tag,
   Settings, LogOut, ChevronRight, HeartHandshake,
-  BarChart2, ShoppingCart, Package, Network,
+  BarChart2, ShoppingCart, Package, Network, Building2,
 } from "lucide-react";
 import { getServerUser } from "@/lib/supabase/server";
 import { adminSupabase } from "@/lib/supabase/admin";
@@ -13,7 +13,8 @@ const NAV = [
   { href: "/admin",           label: "Dashboard",  icon: LayoutDashboard },
   { href: "/admin/books",     label: "Books",       icon: Library },
   { href: "/admin/authors",   label: "Authors",     icon: Users },
-  { href: "/admin/genres",    label: "Genres",      icon: Tag },
+  { href: "/admin/genres",     label: "Genres",      icon: Tag },
+  { href: "/admin/publishers", label: "Publishers",  icon: Building2 },
   { href: "/admin/crm",       label: "CRM",         icon: HeartHandshake },
   { href: "/admin/finance",   label: "Finance",     icon: BarChart2 },
   { href: "/admin/orders",              label: "Orders",     icon: ShoppingCart },
