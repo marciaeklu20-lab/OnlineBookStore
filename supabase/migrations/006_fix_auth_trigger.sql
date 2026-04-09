@@ -28,16 +28,16 @@ BEGIN
   -- Safely extract email (can be NULL for some OAuth flows)
   _email := COALESCE(NEW.email, NEW.raw_user_meta_data->>'email', '');
 
-  -- Try to pull name from Google / OAuth metadata
+  -- Pull name from email/password signup metadata OR Google OAuth
   _first_name := COALESCE(
-    NEW.raw_user_meta_data->>'given_name',
-    NEW.raw_user_meta_data->>'first_name',
+    NEW.raw_user_meta_data->>'first_name',   -- email signup (AuthForm sends this)
+    NEW.raw_user_meta_data->>'given_name',   -- Google OAuth
     split_part(COALESCE(NEW.raw_user_meta_data->>'full_name', ''), ' ', 1),
     ''
   );
   _last_name := COALESCE(
-    NEW.raw_user_meta_data->>'family_name',
-    NEW.raw_user_meta_data->>'last_name',
+    NEW.raw_user_meta_data->>'last_name',    -- email signup
+    NEW.raw_user_meta_data->>'family_name',  -- Google OAuth
     NULLIF(split_part(COALESCE(NEW.raw_user_meta_data->>'full_name', ''), ' ', 2), ''),
     NULL
   );

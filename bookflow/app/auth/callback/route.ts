@@ -1,9 +1,13 @@
+import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-// Reads the Supabase session from cookies (server components only)
-export async function getServerUser(): Promise<{ id: string; email: string } | null> {
-  try {
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get("code");
+  const next = searchParams.get("next") ?? "/dashboard";
+
+  if (code) {
     const cookieStore = await cookies();
 
     const supabase = createServerClient(
@@ -20,18 +24,19 @@ export async function getServerUser(): Promise<{ id: string; email: string } | n
                 cookieStore.set(name, value, options)
               );
             } catch {
-              // Ignore — setAll is called from Server Components where cookies are read-only
+              // Ignored in middleware context
             }
           },
         },
       }
     );
 
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) return null;
-
-    return { id: user.id, email: user.email ?? "" };
-  } catch {
-    return null;
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`);
+    }
   }
+
+  // If something went wrong, redirect to account page with error
+  return NextResponse.redirect(`${origin}/account?error=auth`);
 }

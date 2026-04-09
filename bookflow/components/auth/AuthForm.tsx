@@ -42,7 +42,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
           password,
         });
         if (signInError) throw signInError;
-        router.push("/");
+        router.push("/dashboard");
         router.refresh();
       }
     } catch (err: unknown) {
@@ -55,7 +55,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
     });
   };
 
