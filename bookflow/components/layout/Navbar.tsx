@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Search, ShoppingCart, User, Menu, X, BookOpen, ChevronDown, LayoutDashboard, Package, Heart, LogOut } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase/client";
@@ -24,6 +25,7 @@ export default function Navbar() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const { count } = useCart();
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function loadUser() {
@@ -137,20 +139,20 @@ export default function Navbar() {
                       { href: "/dashboard/orders",   label: "My Orders",      icon: Package },
                       { href: "/dashboard/wishlist", label: "Wishlist",       icon: Heart },
                     ].map(({ href, label, icon: Icon }) => (
-                      <Link
+                      <button
                         key={href}
-                        href={href}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-neutral-600 hover:bg-brand-50 hover:text-brand-600 transition-colors"
+                        type="button"
+                        onMouseDown={() => { setUserMenuOpen(false); router.push(href); }}
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-neutral-600 hover:bg-brand-50 hover:text-brand-600 transition-colors w-full text-left"
                       >
                         <Icon className="w-3.5 h-3.5" />
                         {label}
-                      </Link>
+                      </button>
                     ))}
                     <div className="border-t border-neutral-100 mt-1 pt-1">
                       <button
                         type="button"
-                        onClick={handleSignOut}
+                        onMouseDown={handleSignOut}
                         className="flex items-center gap-2.5 px-4 py-2 text-sm text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-colors w-full text-left"
                       >
                         <LogOut className="w-3.5 h-3.5" />
