@@ -23,6 +23,8 @@ export type Book = {
   cover_image_url: string | null;
   author_id: string | null;
   page_count: number | null;
+  estimated_reading_hours: number | null;
+  language: string | null;
   price_digital: number | null;
   price_paperback: number | null;
   price_hardcover: number | null;

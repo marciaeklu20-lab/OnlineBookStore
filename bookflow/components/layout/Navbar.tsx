@@ -3,24 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Search, ShoppingCart, User, Menu, X, BookOpen } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useCart } from "@/context/CartContext";
 
 const categories = [
-  "Fiction",
-  "Non-Fiction",
-  "Biography",
-  "Business",
-  "Science",
-  "Children",
-  "Education",
-  "Religion",
-  "Self-Help",
-  "Technology",
+  "Fiction", "Non-Fiction", "Biography", "Business", "Science",
+  "Self-Help", "Children", "Religion", "Education", "Technology",
 ];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const { count } = useCart();
 
   return (
     <header className="w-full border-b border-neutral-200 bg-white sticky top-0 z-50">
@@ -48,7 +41,7 @@ export default function Navbar() {
                 placeholder="Search books, authors, genres…"
                 className="w-full border border-neutral-300 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
               />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-brand-500">
+              <button type="button" aria-label="Search" className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-brand-500">
                 <Search className="w-4 h-4" />
               </button>
             </div>
@@ -69,12 +62,15 @@ export default function Navbar() {
             >
               <ShoppingCart className="w-5 h-5" />
               <span className="hidden md:inline">Cart</span>
-              <span className="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                0
-              </span>
+              {count > 0 && (
+                <span className="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {count > 9 ? "9+" : count}
+                </span>
+              )}
             </Link>
             {/* Mobile menu toggle */}
             <button
+              type="button"
               className="md:hidden text-neutral-600"
               onClick={() => setMenuOpen(!menuOpen)}
             >
@@ -94,7 +90,7 @@ export default function Navbar() {
             onMouseEnter={() => setCategoriesOpen(true)}
             onMouseLeave={() => setCategoriesOpen(false)}
           >
-            <button className="flex items-center gap-1 hover:text-brand-500 transition-colors">
+            <button type="button" className="flex items-center gap-1 hover:text-brand-500 transition-colors">
               Categories
               <svg className="w-3 h-3 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -105,7 +101,7 @@ export default function Navbar() {
                 {categories.map((cat) => (
                   <Link
                     key={cat}
-                    href={`/shop?category=${cat.toLowerCase()}`}
+                    href={`/shop?category=${cat.toLowerCase().replace(" ", "-")}`}
                     className="block px-4 py-2 text-sm text-neutral-700 hover:bg-brand-50 hover:text-brand-600"
                   >
                     {cat}
@@ -124,7 +120,6 @@ export default function Navbar() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden border-t border-neutral-200 bg-white px-4 py-4 space-y-4">
-          {/* Mobile search */}
           <div className="relative">
             <input
               type="text"
@@ -147,7 +142,7 @@ export default function Navbar() {
               {categories.map((cat) => (
                 <Link
                   key={cat}
-                  href={`/shop?category=${cat.toLowerCase()}`}
+                  href={`/shop?category=${cat.toLowerCase().replace(" ", "-")}`}
                   className="text-sm text-neutral-600 hover:text-brand-500 py-1"
                   onClick={() => setMenuOpen(false)}
                 >
