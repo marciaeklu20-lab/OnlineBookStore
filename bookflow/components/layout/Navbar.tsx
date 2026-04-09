@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ShoppingCart, User, Menu, X, BookOpen, ChevronDown, LayoutDashboard, Package, Heart, LogOut } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, BookOpen, ChevronDown, LayoutDashboard, Package, Heart, LogOut, ShieldCheck } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { supabase } from "@/lib/supabase/client";
 
@@ -16,6 +16,7 @@ type UserProfile = {
   first_name: string | null;
   last_name: string | null;
   email: string;
+  is_admin: boolean;
 };
 
 export default function Navbar() {
@@ -34,7 +35,7 @@ export default function Navbar() {
 
       const { data } = await supabase
         .from("profiles")
-        .select("first_name, last_name, email")
+        .select("first_name, last_name, email, is_admin")
         .eq("id", user.id)
         .single();
 
@@ -138,12 +139,17 @@ export default function Navbar() {
                       { href: "/dashboard",          label: "My Dashboard",   icon: LayoutDashboard },
                       { href: "/dashboard/orders",   label: "My Orders",      icon: Package },
                       { href: "/dashboard/wishlist", label: "Wishlist",       icon: Heart },
+                      ...(profile?.is_admin ? [{ href: "/admin", label: "Admin Panel", icon: ShieldCheck }] : []),
                     ].map(({ href, label, icon: Icon }) => (
                       <button
                         key={href}
                         type="button"
                         onMouseDown={() => { setUserMenuOpen(false); router.push(href); }}
-                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-neutral-600 hover:bg-brand-50 hover:text-brand-600 transition-colors w-full text-left"
+                        className={`flex items-center gap-2.5 px-4 py-2 text-sm transition-colors w-full text-left ${
+                          href === "/admin"
+                            ? "text-brand-600 hover:bg-brand-50 font-medium"
+                            : "text-neutral-600 hover:bg-brand-50 hover:text-brand-600"
+                        }`}
                       >
                         <Icon className="w-3.5 h-3.5" />
                         {label}
@@ -269,6 +275,11 @@ export default function Navbar() {
             {profile ? (
               <>
                 <Link href="/dashboard" onClick={() => setMenuOpen(false)}>My Dashboard</Link>
+                {profile.is_admin && (
+                  <Link href="/admin" onClick={() => setMenuOpen(false)} className="text-brand-600 font-medium">
+                    Admin Panel
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={handleSignOut}
